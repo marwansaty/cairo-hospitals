@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="لوحة مؤشرات الأداء والإمكانيات الطبية لمستشفيات مديرية الشئون الصحية بالقاهرة — يوليو إلى أكتوبر 2026" />
+  <meta name="theme-color" content="#0f3d5e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="مستشفيات القاهرة" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <title>تقرير الأداء وإمكانيات مستشفيات القاهرة | يوليو – أكتوبر 2026</title>
+
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Compiled Tailwind (no CDN needed) + local Chart.js -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="chart.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+
+    html { -webkit-text-size-adjust: 100%; }
+    button, select, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    canvas { touch-action: pan-y; }
+
+    /* Keep the first column visible while a table is scrolled sideways */
+    .sticky-col { position: sticky; right: 0; z-index: 1; background: #ffffff; box-shadow: -6px 0 8px -8px rgba(15,23,42,.35); }
+    tbody tr:nth-child(even) .sticky-col { background: #f8fafc; }
+    thead .sticky-col { background: #0f3d5e; }
+
+    /* Toggle groups scroll instead of overflowing on narrow phones */
+    .seg-scroll { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .seg-scroll::-webkit-scrollbar { display: none; }
+    .seg-scroll > button { white-space: nowrap; flex-shrink: 0; }
+
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Smooth custom scrollbar for tables */
+    .table-scroll::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-scroll::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 9999px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 9999px;
+    }
+
+    /* Print Styling */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-card {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .print-break-before {
+        break-before: page;
+        page-break-before: always;
+      }
+      .chart-container {
+        height: 220px !important;
+      }
+      header {
+        background: #0f3d5e !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        margin-bottom: 12px !important;
+      }
+      main {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-gradient-to-l from-[#0f3d5e] via-[#124a70] to-[#0d6f7a] text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <!-- Title & Subtitle -->
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7 text-teal-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug">
+              تقرير الأداء وإمكانيات مستشفيات القاهرة
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-200 font-medium mt-0.5">
+              مؤشرات الأداء (KPIs) والإمكانيات الطبية للأشهر: يوليو – أكتوبر 2026
+            </p>
+          </div>
+        </div>
+
+        <!-- View Mode Tabs -->
+        <div class="no-print flex items-center bg-white/10 p-1 rounded-xl border border-white/15 w-full sm:w-auto sm:self-start lg:self-auto">
+          <button id="tabBtnProfile" type="button" onclick="switchTab('profile')"
+            class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 bg-white text-[#0f3d5e] shadow-sm">
+            ملف المستشفى
+          </button>
+          <button id="tabBtnCompare" type="button" onclick="switchTab('compare')"
+            class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-white/90 hover:text-white">
+            <span class="sm:hidden">المقارنة</span><span class="hidden sm:inline">مقارنة جميع المستشفيات</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky Control Bar for Hospital Selection -->
+  <div id="hospitalControlBar" class="no-print sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <!-- Hospital Selector + Prev/Next -->
+        <div class="flex items-center gap-2 flex-1 max-w-2xl">
+          <label for="hospitalSelect" class="hidden sm:flex text-sm font-bold text-[#0f3d5e] whitespace-nowrap items-center gap-1.5">
+            <svg class="w-4 h-4 text-[#0d9488]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+            </svg>
+            اختر المستشفى:
+          </label>
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <button id="prevHospitalBtn" type="button" onclick="navigateHospital(-1)" title="المستشفى السابق"
+              class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[#0f3d5e] transition-colors shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            <select id="hospitalSelect" onchange="selectHospitalByIndex(this.value)"
+              class="w-full min-w-0 py-2 px-3 rounded-xl border border-slate-300 bg-white text-[#0f3d5e] font-bold text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-[#0d9488] shadow-sm cursor-pointer">
+            </select>
+            <button id="nextHospitalBtn" type="button" onclick="navigateHospital(1)" title="المستشفى التالي"
+              class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[#0f3d5e] transition-colors shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+          <span id="hospitalCounter" class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap tabular-nums">
+            1 / 17
+          </span>
+        </div>
+
+        <!-- Print Button -->
+        <div class="hidden md:flex items-center gap-2">
+          <button type="button" onclick="window.print()"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f3d5e] hover:bg-[#0a2b44] text-white text-sm font-bold shadow-sm transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            طباعة التقرير
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
+
+    <!-- ========================================================= -->
+    <!-- TAB 1: HOSPITAL PROFILE VIEW                              -->
+    <!-- ========================================================= -->
+    <div id="viewProfile" class="space-y-6">
+
+      <!-- Selected Hospital Title Banner -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print-card">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-10 rounded-full bg-[#0d9488]"></div>
+          <div>
+            <span class="text-xs font-bold text-[#0d9488] uppercase tracking-wide">ملف المستشفى</span>
+            <h2 id="selectedHospitalName" class="text-xl sm:text-2xl font-extrabold text-[#0f3d5e]">مستشفى شبرا العام</h2>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <span class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">مديرية الشئون الصحية بالقاهرة</span>
+          <span class="px-3 py-1.5 rounded-lg bg-teal-50 text-[#0f766e] border border-teal-200">الفترة: يوليو – أكتوبر 2026</span>
+        </div>
+      </div>
+
+      <!-- SECTION 1: HOSPITAL CAPABILITIES -->
+      <section class="space-y-4">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-[#0f3d5e] text-white text-sm font-extrabold flex items-center justify-center">1</span>
+          <h3 class="text-lg font-extrabold text-[#0f3d5e]">إمكانيات المستشفى والتجهيزات الطبية</h3>
+        </div>
+
+        <!-- Top 5 KPI Summary Cards -->
+        <div id="capabilityCards" class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4"></div>
+
+        <!-- Radiology & Diagnostic Devices Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 print-card">
+          <div class="flex items-center justify-between mb-3.5">
+            <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e] flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#0d9488]"></span>
+              أجهزة الأشعة والتشخيص الطبي
+            </h4>
+            <span class="text-xs font-semibold text-slate-500">عدد الأجهزة وحجم الحالات</span>
+          </div>
+          <div id="devicesGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3"></div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: INTERACTIVE CHARTS -->
+      <section class="space-y-4">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-[#0d9488] text-white text-sm font-extrabold flex items-center justify-center">2</span>
+          <h3 class="text-lg font-extrabold text-[#0f3d5e]">الرسوم البيانية التفاعلية</h3>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+          <!-- Chart 1: ER & OPD Visits -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col print-card">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
+              <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">
+                ترددات الطوارئ والعيادات الخارجية (صباحي / مسائي)
+              </h4>
+              <div class="no-print seg-scroll inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+                <button type="button" data-c1="opd" onclick="setChart1Mode('opd')"
+                  class="c1-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-[#0f3d5e] text-white shadow-sm">
+                  العيادات الخارجية
+                </button>
+                <button type="button" data-c1="er" onclick="setChart1Mode('er')"
+                  class="c1-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-[#0f3d5e]">
+                  الطوارئ
+                </button>
+                <button type="button" data-c1="both" onclick="setChart1Mode('both')"
+                  class="c1-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-[#0f3d5e]">
+                  الإجمالي المقارن
+                </button>
+              </div>
+            </div>
+            <div class="chart-container relative h-72 sm:h-80 w-full">
+              <canvas id="chartVisits"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Monthly Occupancy Rates -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col print-card">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">
+                مؤشرات الإشغال الشهرية (%)
+              </h4>
+              <span class="text-xs font-semibold text-slate-500">يوليو – أكتوبر 2026</span>
+            </div>
+            <div class="chart-container relative h-72 sm:h-80 w-full">
+              <canvas id="chartOccupancy"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Surgeries & Major Share -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col print-card">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">
+                العمليات الجراحية ونسبة الكبرى والمهارة
+              </h4>
+              <span class="text-xs font-semibold text-slate-500">عدد العمليات مقابل النسبة %</span>
+            </div>
+            <div class="chart-container relative h-72 sm:h-80 w-full">
+              <canvas id="chartSurgeries"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Capabilities & Diagnostic Cases -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col print-card">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
+              <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">
+                توزيع الإمكانيات وحالات الأجهزة التشخيصية
+              </h4>
+              <div class="no-print seg-scroll inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+                <button type="button" data-c4="cap" onclick="setChart4Mode('cap')"
+                  class="c4-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-[#0d9488] text-white shadow-sm">
+                  توزيع الأسرة والماكينات
+                </button>
+                <button type="button" data-c4="dev" onclick="setChart4Mode('dev')"
+                  class="c4-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-[#0f3d5e]">
+                  حالات الأجهزة التشخيصية
+                </button>
+              </div>
+            </div>
+            <div class="chart-container relative h-72 sm:h-80 w-full">
+              <canvas id="chartCapDev"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 3: DETAILED KPI TABLES -->
+      <section class="space-y-5 print-break-before">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-[#0f3d5e] text-white text-sm font-extrabold flex items-center justify-center">3</span>
+          <h3 class="text-lg font-extrabold text-[#0f3d5e]">جداول مؤشرات الأداء التفصيلية (يوليو – أكتوبر 2026)</h3>
+        </div>
+
+        <!-- Table 1: ER & OPD -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-card">
+          <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+            <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">1. ترددات الطوارئ والعيادات الخارجية</h4>
+          </div>
+          <div class="overflow-x-auto table-scroll">
+            <table class="w-full text-sm text-center tabular-nums">
+              <thead class="bg-[#0f3d5e] text-white text-xs sm:text-sm">
+                <tr>
+                  <th class="sticky-col py-3 px-3 font-bold">الشهر</th>
+                  <th class="py-3 px-3 font-bold">إجمالي الطوارئ</th>
+                  <th class="py-3 px-3 font-bold">صباح الطوارئ</th>
+                  <th class="py-3 px-3 font-bold">مساء الطوارئ</th>
+                  <th class="py-3 px-3 font-bold">إجمالي العيادات</th>
+                  <th class="py-3 px-3 font-bold">صباح العيادات</th>
+                  <th class="py-3 px-3 font-bold">مساء العيادات</th>
+                </tr>
+              </thead>
+              <tbody id="tableVisitsBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Table 2: Occupancy & ALOS -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-card">
+          <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+            <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">2. مؤشرات الإشغال ومتوسط الإقامة</h4>
+          </div>
+          <div class="overflow-x-auto table-scroll">
+            <table class="w-full text-sm text-center tabular-nums">
+              <thead class="bg-[#0f3d5e] text-white text-xs sm:text-sm">
+                <tr>
+                  <th class="sticky-col py-3 px-3 font-bold">الشهر</th>
+                  <th class="py-3 px-3 font-bold">إشغال الداخلي</th>
+                  <th class="py-3 px-3 font-bold">إشغال الرعاية المركزة</th>
+                  <th class="py-3 px-3 font-bold">إشغال رعاية الأطفال</th>
+                  <th class="py-3 px-3 font-bold">إشغال الحضانات</th>
+                  <th class="py-3 px-3 font-bold">متوسط الإقامة (داخلي)</th>
+                </tr>
+              </thead>
+              <tbody id="tableOccupancyBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Table 3: Surgeries -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-card">
+          <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+            <h4 class="text-sm sm:text-base font-extrabold text-[#0f3d5e]">3. العمليات الجراحية ونسب التدخلات الكبرى</h4>
+          </div>
+          <div class="overflow-x-auto table-scroll">
+            <table class="w-full text-sm text-center tabular-nums">
+              <thead class="bg-[#0f3d5e] text-white text-xs sm:text-sm">
+                <tr>
+                  <th class="sticky-col py-3 px-3 font-bold">الشهر</th>
+                  <th class="py-3 px-3 font-bold">إجمالي العمليات</th>
+                  <th class="py-3 px-3 font-bold">عمليات كبرى وذات مهارة</th>
+                  <th class="py-3 px-3 font-bold">نسبة الكبرى والمهارة</th>
+                  <th class="py-3 px-3 font-bold">العمليات المؤجلة</th>
+                </tr>
+              </thead>
+              <tbody id="tableSurgeriesBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: CROSS-HOSPITAL COMPARISON VIEW                     -->
+    <!-- ========================================================= -->
+    <div id="viewCompare" class="hidden space-y-6">
+
+      <!-- Comparison Controls Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+          <div>
+            <label for="compareMetricSelect" class="block text-xs font-bold text-[#0f3d5e] mb-1.5">المؤشر المراد مقارنته</label>
+            <select id="compareMetricSelect" onchange="renderComparison()"
+              class="w-full py-2.5 px-3.5 rounded-xl border border-slate-300 bg-white text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0d9488]">
+              <option value="er_tot">إجمالي ترددات الطوارئ</option>
+              <option value="opd_tot">إجمالي ترددات العيادات الخارجية</option>
+              <option value="surg_tot">إجمالي العمليات الجراحية</option>
+              <option value="occ_icu">متوسط إشغال الرعاية المركزة (%)</option>
+              <option value="occ_inp">متوسط إشغال الداخلي (%)</option>
+              <option value="inpatient_total">إجمالي أسرة الداخلي</option>
+              <option value="icu_total">إجمالي أسرة العناية</option>
+              <option value="dialysis">ماكينات الغسيل الكلوي</option>
+              <option value="incubators">الحضانات المفعلة</option>
+              <option value="total_or">غرف العمليات المفعلة</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="comparePeriodSelect" class="block text-xs font-bold text-[#0f3d5e] mb-1.5">الفترة الزمنية</label>
+            <select id="comparePeriodSelect" onchange="renderComparison()"
+              class="w-full py-2.5 px-3.5 rounded-xl border border-slate-300 bg-white text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0d9488] disabled:bg-slate-100 disabled:text-slate-400">
+              <option value="all">إجمالي / متوسط 4 أشهر (يوليو – أكتوبر)</option>
+              <option value="0">يوليو 2026</option>
+              <option value="1">أغسطس 2026</option>
+              <option value="2">سبتمبر 2026</option>
+              <option value="3">أكتوبر 2026</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-between md:justify-end gap-2 bg-teal-50 border border-teal-200 rounded-xl px-4 py-2.5">
+            <span class="text-xs font-bold text-[#0f766e]">إجمالي / متوسط المديرية:</span>
+            <span id="compareSummaryStat" class="text-base font-extrabold text-[#0f3d5e] tabular-nums">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horizontal Comparison Bar Chart -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 id="compareChartTitle" class="text-base sm:text-lg font-extrabold text-[#0f3d5e]">مقارنة المستشفيات</h3>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">اضغط (أو المس) أي عمود بالرسم البياني للانتقال مباشرة إلى ملف المستشفى</p>
+          </div>
+          <span id="comparePeriodBadge" class="text-xs font-bold px-3 py-1 rounded-lg bg-slate-100 text-slate-700 self-start sm:self-auto"></span>
+        </div>
+        <div id="compareChartBox" class="relative h-[560px] w-full">
+          <canvas id="chartCompare"></canvas>
+        </div>
+      </div>
+
+      <!-- All 17 Hospitals Sortable Summary Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
+          <h3 class="text-base font-extrabold text-[#0f3d5e]">جدول ملخص جميع المستشفيات (17 مستشفى)</h3>
+          <div class="relative w-full sm:w-72">
+            <input id="compareSearchInput" type="text" oninput="renderCompareTable()" placeholder="ابحث باسم المستشفى..."
+              class="w-full pr-9 pl-3 py-2 rounded-xl border border-slate-300 bg-white text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0d9488]" />
+            <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="overflow-x-auto table-scroll">
+          <table class="w-full text-xs sm:text-sm text-center tabular-nums">
+            <thead class="bg-[#0f3d5e] text-white">
+              <tr>
+                <th class="sticky-col py-3 px-3 text-right cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('name')">
+                  المستشفى <span id="sort_name" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('inpatient_total')">
+                  أسرة داخلي <span id="sort_inpatient_total" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('icu_total')">
+                  أسرة عناية <span id="sort_icu_total" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('dialysis')">
+                  ماكينات كلى <span id="sort_dialysis" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('er_tot')">
+                  الطوارئ <span id="sort_er_tot" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('opd_tot')">
+                  العيادات <span id="sort_opd_tot" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('surg_tot')">
+                  العمليات <span id="sort_surg_tot" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="whitespace-nowrap py-3 px-2.5 cursor-pointer hover:bg-[#1a5680] transition-colors select-none" onclick="sortCompareTable('occ_icu')">
+                  إشغال الرعاية <span id="sort_occ_icu" class="text-teal-300 text-[10px]"></span>
+                </th>
+                <th class="py-3 px-3">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="compareTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8 safe-bottom">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
+      <span>مديرية الشئون الصحية بالقاهرة — لوحة مؤشرات الأداء والإمكانيات الطبية</span>
+      <span>الفترة: يوليو – أكتوبر 2026</span>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- DATA & APPLICATION LOGIC                                  -->
+  <!-- ========================================================= -->
+  <script>
+    // Verified dataset for all 17 Cairo Health Directorate Hospitals
+    const HOSPITALS_DATA = [{"id": "م . شبرا العام", "name": "مستشفى شبرا العام", "cap": {"inpatient_total": 158, "burns_beds": 18, "icu_inter": 0, "icu_gen": 18, "icu_cardiac": 10, "icu_burns": 0, "icu_peds": 0, "icu_total": 28, "incubators": 16, "dialysis": 41}, "or": {"major_or": 7, "minor_or": 1, "total_or": 8}, "devices": {"ct": {"count": 1, "cases": 586}, "cath": {"count": 1, "cases": 74}, "echo": {"count": 1, "cases": 229}, "mri": {"count": 1, "cases": 537}, "mammo": {"count": 1, "cases": 3}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 7339, "er_am": 2914, "er_pm": 4425, "er_am_p": 40.0, "er_pm_p": 60.0, "opd_tot": 20287, "opd_am": 19769, "opd_pm": 518, "opd_am_p": 97.0, "opd_pm_p": 3.0, "occ_inp": 15.0, "occ_icu": 95.0, "occ_picu": 0, "occ_nic": 55.0, "alos_inp": 2.0, "surg_tot": 317, "surg_maj": 221, "surg_maj_p": 69.7, "surg_post": 3}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 7408, "er_am": 2645, "er_pm": 4763, "er_am_p": 36.0, "er_pm_p": 64.0, "opd_tot": 22583, "opd_am": 22072, "opd_pm": 511, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 17.0, "occ_icu": 94.0, "occ_picu": 0, "occ_nic": 48.0, "alos_inp": 2.32, "surg_tot": 315, "surg_maj": 207, "surg_maj_p": 65.7, "surg_post": 1}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 6772, "er_am": 2721, "er_pm": 4051, "er_am_p": 40.0, "er_pm_p": 60.0, "opd_tot": 22414, "opd_am": 21967, "opd_pm": 447, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 15.0, "occ_icu": 102.0, "occ_picu": 0, "occ_nic": 38.0, "alos_inp": 2.05, "surg_tot": 314, "surg_maj": 215, "surg_maj_p": 68.5, "surg_post": 2}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 8066, "er_am": 3699, "er_pm": 4367, "er_am_p": 46.0, "er_pm_p": 54.0, "opd_tot": 22925, "opd_am": 22314, "opd_pm": 611, "opd_am_p": 97.0, "opd_pm_p": 3.0, "occ_inp": 17.0, "occ_icu": 86.0, "occ_picu": 0, "occ_nic": 46.0, "alos_inp": 2.75, "surg_tot": 314, "surg_maj": 187, "surg_maj_p": 59.6, "surg_post": 8}]}, {"id": "م . منشية البكرى العام", "name": "مستشفى منشية البكرى العام", "cap": {"inpatient_total": 96, "burns_beds": 0, "icu_inter": 6, "icu_gen": 10, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 20, "icu_total": 36, "incubators": 17, "dialysis": 42}, "or": {"major_or": 6, "minor_or": 3, "total_or": 9}, "devices": {"ct": {"count": 2, "cases": 878}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 3, "cases": 400}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 1, "cases": 21}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 17515, "er_am": 5838, "er_pm": 11677, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 32683, "opd_am": 31919, "opd_pm": 764, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 93.0, "occ_icu": 97.0, "occ_picu": 30.0, "occ_nic": 75.0, "alos_inp": 6.91, "surg_tot": 423, "surg_maj": 181, "surg_maj_p": 42.8, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 17952, "er_am": 5984, "er_pm": 11968, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 29460, "opd_am": 28733, "opd_pm": 727, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 86.0, "occ_icu": 100.0, "occ_picu": 78.0, "occ_nic": 63.0, "alos_inp": 5.69, "surg_tot": 436, "surg_maj": 186, "surg_maj_p": 42.7, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 19785, "er_am": 6599, "er_pm": 13186, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 32249, "opd_am": 31726, "opd_pm": 523, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 79.0, "occ_icu": 90.0, "occ_picu": 72.0, "occ_nic": 69.0, "alos_inp": 5.77, "surg_tot": 408, "surg_maj": 203, "surg_maj_p": 49.8, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 18492, "er_am": 6164, "er_pm": 12328, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 33903, "opd_am": 33253, "opd_pm": 650, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 63.0, "occ_icu": 97.0, "occ_picu": 69.0, "occ_nic": 64.0, "alos_inp": 4.38, "surg_tot": 426, "surg_maj": 181, "surg_maj_p": 42.5, "surg_post": 0}]}, {"id": "م . المنيرة العام", "name": "مستشفى المنيرة العام", "cap": {"inpatient_total": 127, "burns_beds": 12, "icu_inter": 8, "icu_gen": 22, "icu_cardiac": 12, "icu_burns": 3, "icu_peds": 15, "icu_total": 60, "incubators": 22, "dialysis": 39}, "or": {"major_or": 8, "minor_or": 1, "total_or": 9}, "devices": {"ct": {"count": 1, "cases": 1366}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 576}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 1, "cases": 12}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 13405, "er_am": 5270, "er_pm": 8135, "er_am_p": 39.0, "er_pm_p": 61.0, "opd_tot": 24076, "opd_am": 19323, "opd_pm": 4753, "opd_am_p": 80.0, "opd_pm_p": 20.0, "occ_inp": 48.0, "occ_icu": 99.0, "occ_picu": 74.0, "occ_nic": 95.0, "alos_inp": 2.67, "surg_tot": 509, "surg_maj": 284, "surg_maj_p": 55.8, "surg_post": 10}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 13017, "er_am": 4650, "er_pm": 8367, "er_am_p": 36.0, "er_pm_p": 64.0, "opd_tot": 32019, "opd_am": 27045, "opd_pm": 4974, "opd_am_p": 84.0, "opd_pm_p": 16.0, "occ_inp": 43.0, "occ_icu": 111.0, "occ_picu": 74.0, "occ_nic": 88.0, "alos_inp": 2.19, "surg_tot": 551, "surg_maj": 327, "surg_maj_p": 59.3, "surg_post": 1}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 12126, "er_am": 5785, "er_pm": 6341, "er_am_p": 48.0, "er_pm_p": 52.0, "opd_tot": 34499, "opd_am": 33679, "opd_pm": 820, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 45.0, "occ_icu": 104.0, "occ_picu": 60.0, "occ_nic": 61.0, "alos_inp": 2.2, "surg_tot": 514, "surg_maj": 276, "surg_maj_p": 53.7, "surg_post": 10}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 13023, "er_am": 5765, "er_pm": 7258, "er_am_p": 44.0, "er_pm_p": 56.0, "opd_tot": 35774, "opd_am": 31255, "opd_pm": 4519, "opd_am_p": 87.0, "opd_pm_p": 13.0, "occ_inp": 42.0, "occ_icu": 101.0, "occ_picu": 65.0, "occ_nic": 46.0, "alos_inp": 2.21, "surg_tot": 514, "surg_maj": 236, "surg_maj_p": 45.9, "surg_post": 3}]}, {"id": "م . الخليفة العام", "name": "مستشفى الخليفة العام", "cap": {"inpatient_total": 0, "burns_beds": 0, "icu_inter": 0, "icu_gen": 0, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 0, "incubators": 0, "dialysis": 0}, "or": {"major_or": 0, "minor_or": 0, "total_or": 0}, "devices": {"ct": {"count": 0, "cases": 0}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 0, "cases": 0}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 107, "er_am": 91, "er_pm": 16, "er_am_p": 85.0, "er_pm_p": 15.0, "opd_tot": 16776, "opd_am": 16633, "opd_pm": 143, "opd_am_p": 99.0, "opd_pm_p": 1.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 152, "er_am": 141, "er_pm": 11, "er_am_p": 93.0, "er_pm_p": 7.0, "opd_tot": 17287, "opd_am": 17190, "opd_pm": 97, "opd_am_p": 99.0, "opd_pm_p": 1.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 163, "er_am": 153, "er_pm": 10, "er_am_p": 94.0, "er_pm_p": 6.0, "opd_tot": 15487, "opd_am": 15457, "opd_pm": 30, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 142, "er_am": 122, "er_pm": 20, "er_am_p": 86.0, "er_pm_p": 14.0, "opd_tot": 16201, "opd_am": 16157, "opd_pm": 44, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}]}, {"id": "م .الخازنداره العام", "name": "مستشفى الخازنداره العام", "cap": {"inpatient_total": 58, "burns_beds": 0, "icu_inter": 0, "icu_gen": 11, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 11, "incubators": 10, "dialysis": 10}, "or": {"major_or": 3, "minor_or": 1, "total_or": 4}, "devices": {"ct": {"count": 0, "cases": 0}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 145}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 4414, "er_am": 1704, "er_pm": 2710, "er_am_p": 39.0, "er_pm_p": 61.0, "opd_tot": 21878, "opd_am": 21709, "opd_pm": 169, "opd_am_p": 99.0, "opd_pm_p": 1.0, "occ_inp": 22.0, "occ_icu": 74.0, "occ_picu": 0, "occ_nic": 44.0, "alos_inp": 2.26, "surg_tot": 134, "surg_maj": 55, "surg_maj_p": 41.0, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 4680, "er_am": 1640, "er_pm": 3040, "er_am_p": 35.0, "er_pm_p": 65.0, "opd_tot": 25751, "opd_am": 25691, "opd_pm": 60, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 24.0, "occ_icu": 56.0, "occ_picu": 0, "occ_nic": 55.0, "alos_inp": 2.17, "surg_tot": 151, "surg_maj": 69, "surg_maj_p": 45.7, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 4680, "er_am": 1640, "er_pm": 3040, "er_am_p": 35.0, "er_pm_p": 65.0, "opd_tot": 25375, "opd_am": 24810, "opd_pm": 565, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 18.0, "occ_icu": 54.0, "occ_picu": 0, "occ_nic": 40.0, "alos_inp": 2.07, "surg_tot": 105, "surg_maj": 51, "surg_maj_p": 48.6, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 4810, "er_am": 1700, "er_pm": 3110, "er_am_p": 35.0, "er_pm_p": 65.0, "opd_tot": 25783, "opd_am": 25247, "opd_pm": 536, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 31.0, "occ_icu": 83.0, "occ_picu": 0, "occ_nic": 41.0, "alos_inp": 1.55, "surg_tot": 121, "surg_maj": 59, "surg_maj_p": 48.8, "surg_post": 0}]}, {"id": "م .بولاق ابو العلا العام", "name": "مستشفى بولاق ابو العلا العام", "cap": {"inpatient_total": 0, "burns_beds": 0, "icu_inter": 0, "icu_gen": 0, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 0, "incubators": 0, "dialysis": 0}, "or": {"major_or": 0, "minor_or": 0, "total_or": 0}, "devices": {"ct": {"count": 0, "cases": 0}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 0, "cases": 0}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 6938, "opd_am": 6938, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 8388, "opd_am": 8388, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 9047, "opd_am": 9047, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 9447, "opd_am": 9447, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.0, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}]}, {"id": "م . دار السلام العام", "name": "مستشفى دار السلام العام", "cap": {"inpatient_total": 22, "burns_beds": 0, "icu_inter": 2, "icu_gen": 9, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 11, "incubators": 16, "dialysis": 0}, "or": {"major_or": 2, "minor_or": 2, "total_or": 4}, "devices": {"ct": {"count": 0, "cases": 0}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 93}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 4158, "er_am": 1080, "er_pm": 3078, "er_am_p": 26.0, "er_pm_p": 74.0, "opd_tot": 9202, "opd_am": 9172, "opd_pm": 30, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 21.0, "occ_icu": 67.0, "occ_picu": 0, "occ_nic": 20.0, "alos_inp": 1.25, "surg_tot": 80, "surg_maj": 44, "surg_maj_p": 55.0, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 5339, "er_am": 1191, "er_pm": 4148, "er_am_p": 22.0, "er_pm_p": 78.0, "opd_tot": 5808, "opd_am": 5794, "opd_pm": 14, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 4.0, "occ_icu": 69.0, "occ_picu": 0, "occ_nic": 39.0, "alos_inp": 1.26, "surg_tot": 69, "surg_maj": 28, "surg_maj_p": 40.6, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 4794, "er_am": 3000, "er_pm": 1794, "er_am_p": 63.0, "er_pm_p": 37.0, "opd_tot": 14275, "opd_am": 14264, "opd_pm": 11, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 16.0, "occ_icu": 50.0, "occ_picu": 0, "occ_nic": 52.0, "alos_inp": 1.13, "surg_tot": 70, "surg_maj": 45, "surg_maj_p": 64.3, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 5245, "er_am": 2499, "er_pm": 2746, "er_am_p": 48.0, "er_pm_p": 52.0, "opd_tot": 14209, "opd_am": 14178, "opd_pm": 31, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 14.0, "occ_icu": 61.0, "occ_picu": 0, "occ_nic": 46.0, "alos_inp": 1.21, "surg_tot": 70, "surg_maj": 36, "surg_maj_p": 51.4, "surg_post": 0}]}, {"id": "م . الزاوية العام", "name": "مستشفى الزاوية العام", "cap": {"inpatient_total": 10, "burns_beds": 0, "icu_inter": 0, "icu_gen": 0, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 0, "incubators": 2, "dialysis": 23}, "or": {"major_or": 3, "minor_or": 1, "total_or": 4}, "devices": {"ct": {"count": 0, "cases": 0}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 0, "cases": 0}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 1086, "er_am": 724, "er_pm": 362, "er_am_p": 67.0, "er_pm_p": 33.0, "opd_tot": 12598, "opd_am": 12598, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 8.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 1.0, "surg_tot": 21, "surg_maj": 10, "surg_maj_p": 47.6, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 1168, "er_am": 768, "er_pm": 400, "er_am_p": 66.0, "er_pm_p": 34.0, "opd_tot": 13179, "opd_am": 13179, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 7.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 1.0, "surg_tot": 21, "surg_maj": 6, "surg_maj_p": 28.6, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 1755, "er_am": 1155, "er_pm": 600, "er_am_p": 66.0, "er_pm_p": 34.0, "opd_tot": 14107, "opd_am": 14107, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 3.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 1.0, "surg_tot": 8, "surg_maj": 1, "surg_maj_p": 12.5, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 933, "er_am": 633, "er_pm": 300, "er_am_p": 68.0, "er_pm_p": 32.0, "opd_tot": 15242, "opd_am": 15242, "opd_pm": 0, "opd_am_p": 100.0, "opd_pm_p": 0.0, "occ_inp": 3.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 1.0, "surg_tot": 8, "surg_maj": 2, "surg_maj_p": 25.0, "surg_post": 0}]}, {"id": "م . روض الفرج العام", "name": "مستشفى روض الفرج العام", "cap": {"inpatient_total": 33, "burns_beds": 0, "icu_inter": 0, "icu_gen": 15, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 15, "incubators": 8, "dialysis": 48}, "or": {"major_or": 3, "minor_or": 1, "total_or": 4}, "devices": {"ct": {"count": 1, "cases": 138}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 2, "cases": 139}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 1825, "er_am": 608, "er_pm": 1217, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 11043, "opd_am": 10503, "opd_pm": 540, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 28.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 37.0, "alos_inp": 3.0, "surg_tot": 82, "surg_maj": 45, "surg_maj_p": 54.9, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 1484, "er_am": 494, "er_pm": 990, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 11730, "opd_am": 11157, "opd_pm": 573, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 29.0, "occ_icu": 44.0, "occ_picu": 0, "occ_nic": 73.0, "alos_inp": 3.0, "surg_tot": 70, "surg_maj": 44, "surg_maj_p": 62.9, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 1107, "er_am": 369, "er_pm": 738, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 11834, "opd_am": 11219, "opd_pm": 615, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 25.0, "occ_icu": 51.0, "occ_picu": 0, "occ_nic": 57.0, "alos_inp": 3.0, "surg_tot": 76, "surg_maj": 46, "surg_maj_p": 60.5, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 1117, "er_am": 372, "er_pm": 745, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 8735, "opd_am": 8119, "opd_pm": 616, "opd_am_p": 93.0, "opd_pm_p": 7.0, "occ_inp": 26.0, "occ_icu": 50.0, "occ_picu": 0, "occ_nic": 61.0, "alos_inp": 3.0, "surg_tot": 77, "surg_maj": 50, "surg_maj_p": 64.9, "surg_post": 0}]}, {"id": "م .عين شمس العام", "name": "مستشفى عين شمس العام", "cap": {"inpatient_total": 45, "burns_beds": 0, "icu_inter": 2, "icu_gen": 91, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 93, "incubators": 12, "dialysis": 27}, "or": {"major_or": 4, "minor_or": 0, "total_or": 4}, "devices": {"ct": {"count": 1, "cases": 1484}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 2, "cases": 131}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 1, "cases": 26}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 12311, "er_am": 4103, "er_pm": 8208, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 42500, "opd_am": 41226, "opd_pm": 1274, "opd_am_p": 97.0, "opd_pm_p": 3.0, "occ_inp": 59.0, "occ_icu": 102.0, "occ_picu": 0, "occ_nic": 91.0, "alos_inp": 3.7, "surg_tot": 282, "surg_maj": 148, "surg_maj_p": 52.5, "surg_post": 8}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 9780, "er_am": 3520, "er_pm": 6260, "er_am_p": 36.0, "er_pm_p": 64.0, "opd_tot": 42056, "opd_am": 41083, "opd_pm": 973, "opd_am_p": 98.0, "opd_pm_p": 2.0, "occ_inp": 46.0, "occ_icu": 101.0, "occ_picu": 0, "occ_nic": 87.0, "alos_inp": 4.33, "surg_tot": 265, "surg_maj": 130, "surg_maj_p": 49.1, "surg_post": 4}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 9100, "er_am": 3565, "er_pm": 5535, "er_am_p": 39.0, "er_pm_p": 61.0, "opd_tot": 36894, "opd_am": 35495, "opd_pm": 1399, "opd_am_p": 96.0, "opd_pm_p": 4.0, "occ_inp": 51.0, "occ_icu": 96.0, "occ_picu": 0, "occ_nic": 83.0, "alos_inp": 4.17, "surg_tot": 226, "surg_maj": 90, "surg_maj_p": 39.8, "surg_post": 2}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 11188, "er_am": 3729, "er_pm": 7459, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 46892, "opd_am": 45380, "opd_pm": 1512, "opd_am_p": 97.0, "opd_pm_p": 3.0, "occ_inp": 73.0, "occ_icu": 95.0, "occ_picu": 0, "occ_nic": 93.0, "alos_inp": 5.45, "surg_tot": 275, "surg_maj": 140, "surg_maj_p": 50.9, "surg_post": 5}]}, {"id": "م .حلوان العام", "name": "مستشفى حلوان العام", "cap": {"inpatient_total": 77, "burns_beds": 0, "icu_inter": 0, "icu_gen": 20, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 20, "incubators": 14, "dialysis": 21}, "or": {"major_or": 5, "minor_or": 0, "total_or": 5}, "devices": {"ct": {"count": 2, "cases": 669}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 318}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 1, "cases": 105}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 12520, "er_am": 2880, "er_pm": 9640, "er_am_p": 23.0, "er_pm_p": 77.0, "opd_tot": 33866, "opd_am": 32511, "opd_pm": 1355, "opd_am_p": 96.0, "opd_pm_p": 4.0, "occ_inp": 30.0, "occ_icu": 83.0, "occ_picu": 0, "occ_nic": 46.0, "alos_inp": 2.32, "surg_tot": 230, "surg_maj": 94, "surg_maj_p": 40.9, "surg_post": 3}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 12480, "er_am": 2995, "er_pm": 9485, "er_am_p": 24.0, "er_pm_p": 76.0, "opd_tot": 35543, "opd_am": 34014, "opd_pm": 1529, "opd_am_p": 96.0, "opd_pm_p": 4.0, "occ_inp": 31.0, "occ_icu": 81.0, "occ_picu": 0, "occ_nic": 55.0, "alos_inp": 2.08, "surg_tot": 280, "surg_maj": 108, "surg_maj_p": 38.6, "surg_post": 4}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 10920, "er_am": 2840, "er_pm": 8080, "er_am_p": 26.0, "er_pm_p": 74.0, "opd_tot": 32304, "opd_am": 30843, "opd_pm": 1461, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 27.0, "occ_icu": 85.0, "occ_picu": 0, "occ_nic": 58.0, "alos_inp": 2.1, "surg_tot": 237, "surg_maj": 89, "surg_maj_p": 37.6, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 12900, "er_am": 2920, "er_pm": 9980, "er_am_p": 23.0, "er_pm_p": 77.0, "opd_tot": 35148, "opd_am": 33344, "opd_pm": 1804, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 29.0, "occ_icu": 79.0, "occ_picu": 0, "occ_nic": 61.0, "alos_inp": 2.31, "surg_tot": 237, "surg_maj": 83, "surg_maj_p": 35.0, "surg_post": 2}]}, {"id": "التبين المركزي", "name": "مستشفى التبين المركزي", "cap": {"inpatient_total": 12, "burns_beds": 0, "icu_inter": 0, "icu_gen": 0, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 10, "icu_total": 10, "incubators": 18, "dialysis": 20}, "or": {"major_or": 2, "minor_or": 1, "total_or": 3}, "devices": {"ct": {"count": 1, "cases": 374}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 5}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 1, "cases": 5}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 3355, "er_am": 1118, "er_pm": 2237, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 14072, "opd_am": 13419, "opd_pm": 653, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 88.0, "occ_icu": 0, "occ_picu": 33.0, "occ_nic": 42.0, "alos_inp": 1.11, "surg_tot": 302, "surg_maj": 122, "surg_maj_p": 40.4, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 3123, "er_am": 1041, "er_pm": 2082, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 15982, "opd_am": 15225, "opd_pm": 757, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 89.0, "occ_icu": 0, "occ_picu": 27.0, "occ_nic": 59.0, "alos_inp": 1.09, "surg_tot": 314, "surg_maj": 104, "surg_maj_p": 33.1, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 2695, "er_am": 878, "er_pm": 1817, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 16293, "opd_am": 15566, "opd_pm": 727, "opd_am_p": 96.0, "opd_pm_p": 4.0, "occ_inp": 97.0, "occ_icu": 0, "occ_picu": 40.0, "occ_nic": 48.0, "alos_inp": 1.12, "surg_tot": 334, "surg_maj": 107, "surg_maj_p": 32.0, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 2630, "er_am": 877, "er_pm": 1753, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 16239, "opd_am": 15412, "opd_pm": 827, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 85.0, "occ_icu": 0, "occ_picu": 37.0, "occ_nic": 42.0, "alos_inp": 1.16, "surg_tot": 334, "surg_maj": 98, "surg_maj_p": 29.3, "surg_post": 0}]}, {"id": "م . الشروق المركزى", "name": "مستشفى الشروق المركزى", "cap": {"inpatient_total": 24, "burns_beds": 0, "icu_inter": 0, "icu_gen": 9, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 9, "incubators": 10, "dialysis": 27}, "or": {"major_or": 2, "minor_or": 1, "total_or": 3}, "devices": {"ct": {"count": 1, "cases": 805}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 3, "cases": 262}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 1, "cases": 42}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 4007, "er_am": 2527, "er_pm": 1480, "er_am_p": 63.0, "er_pm_p": 37.0, "opd_tot": 22750, "opd_am": 19120, "opd_pm": 3630, "opd_am_p": 84.0, "opd_pm_p": 16.0, "occ_inp": 80.0, "occ_icu": 41.0, "occ_picu": 0, "occ_nic": 44.0, "alos_inp": 2.55, "surg_tot": 144, "surg_maj": 60, "surg_maj_p": 41.7, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 3480, "er_am": 2124, "er_pm": 1356, "er_am_p": 61.0, "er_pm_p": 39.0, "opd_tot": 25034, "opd_am": 20853, "opd_pm": 4181, "opd_am_p": 83.0, "opd_pm_p": 17.0, "occ_inp": 64.0, "occ_icu": 54.0, "occ_picu": 0, "occ_nic": 28.0, "alos_inp": 2.03, "surg_tot": 148, "surg_maj": 84, "surg_maj_p": 56.8, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 3055, "er_am": 2015, "er_pm": 1040, "er_am_p": 66.0, "er_pm_p": 34.0, "opd_tot": 25074, "opd_am": 20791, "opd_pm": 4283, "opd_am_p": 83.0, "opd_pm_p": 17.0, "occ_inp": 72.0, "occ_icu": 71.0, "occ_picu": 0, "occ_nic": 31.0, "alos_inp": 2.07, "surg_tot": 155, "surg_maj": 88, "surg_maj_p": 56.8, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 3166, "er_am": 2165, "er_pm": 1001, "er_am_p": 68.0, "er_pm_p": 32.0, "opd_tot": 25350, "opd_am": 21690, "opd_pm": 3660, "opd_am_p": 86.0, "opd_pm_p": 14.0, "occ_inp": 49.0, "occ_icu": 65.0, "occ_picu": 0, "occ_nic": 35.0, "alos_inp": 1.59, "surg_tot": 155, "surg_maj": 85, "surg_maj_p": 54.8, "surg_post": 0}]}, {"id": "م . صدر العباسية", "name": "مستشفى صدر العباسية", "cap": {"inpatient_total": 335, "burns_beds": 0, "icu_inter": 0, "icu_gen": 70, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 70, "incubators": 0, "dialysis": 2}, "or": {"major_or": 4, "minor_or": 0, "total_or": 4}, "devices": {"ct": {"count": 3, "cases": 2238}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 76}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 3157, "er_am": 1052, "er_pm": 2105, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 5155, "opd_am": 4295, "opd_pm": 860, "opd_am_p": 83.0, "opd_pm_p": 17.0, "occ_inp": 53.0, "occ_icu": 88.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 19.26, "surg_tot": 128, "surg_maj": 2, "surg_maj_p": 1.6, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 3533, "er_am": 1177, "er_pm": 2356, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 6603, "opd_am": 5080, "opd_pm": 1523, "opd_am_p": 77.0, "opd_pm_p": 23.0, "occ_inp": 63.0, "occ_icu": 99.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 19.33, "surg_tot": 110, "surg_maj": 4, "surg_maj_p": 3.6, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 2947, "er_am": 982, "er_pm": 1965, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 6608, "opd_am": 5261, "opd_pm": 1347, "opd_am_p": 80.0, "opd_pm_p": 20.0, "occ_inp": 65.0, "occ_icu": 123.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 18.59, "surg_tot": 106, "surg_maj": 2, "surg_maj_p": 1.9, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 3054, "er_am": 1018, "er_pm": 2036, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 7225, "opd_am": 5693, "opd_pm": 1532, "opd_am_p": 79.0, "opd_pm_p": 21.0, "occ_inp": 64.0, "occ_icu": 85.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 18.0, "surg_tot": 106, "surg_maj": 4, "surg_maj_p": 3.8, "surg_post": 0}]}, {"id": "م . رمد قلاوون", "name": "مستشفى رمد قلاوون", "cap": {"inpatient_total": 31, "burns_beds": 0, "icu_inter": 0, "icu_gen": 0, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 0, "incubators": 0, "dialysis": 0}, "or": {"major_or": 3, "minor_or": 1, "total_or": 4}, "devices": {"ct": {"count": 1, "cases": 183}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 0, "cases": 0}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 11078, "opd_am": 10532, "opd_pm": 546, "opd_am_p": 95.0, "opd_pm_p": 5.0, "occ_inp": 24.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.01, "surg_tot": 222, "surg_maj": 175, "surg_maj_p": 78.8, "surg_post": 16}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 9688, "opd_am": 9432, "opd_pm": 256, "opd_am_p": 97.0, "opd_pm_p": 3.0, "occ_inp": 1.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.01, "surg_tot": 170, "surg_maj": 144, "surg_maj_p": 84.7, "surg_post": 17}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 10166, "opd_am": 9784, "opd_pm": 382, "opd_am_p": 96.0, "opd_pm_p": 4.0, "occ_inp": 1.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.01, "surg_tot": 170, "surg_maj": 140, "surg_maj_p": 82.4, "surg_post": 33}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 0, "er_am": 0, "er_pm": 0, "er_am_p": 0, "er_pm_p": 0, "opd_tot": 9306, "opd_am": 9013, "opd_pm": 293, "opd_am_p": 97.0, "opd_pm_p": 3.0, "occ_inp": 1.0, "occ_icu": 0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 0.01, "surg_tot": 170, "surg_maj": 134, "surg_maj_p": 78.8, "surg_post": 3}]}, {"id": "م . حميات العباسية", "name": "مستشفى حميات العباسية", "cap": {"inpatient_total": 160, "burns_beds": 0, "icu_inter": 25, "icu_gen": 29, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 30, "icu_total": 84, "incubators": 0, "dialysis": 31}, "or": {"major_or": 1, "minor_or": 0, "total_or": 1}, "devices": {"ct": {"count": 1, "cases": 521}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 4, "cases": 62}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 1673, "er_am": 557, "er_pm": 1116, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 13810, "opd_am": 9974, "opd_pm": 3836, "opd_am_p": 72.0, "opd_pm_p": 28.0, "occ_inp": 48.0, "occ_icu": 106.0, "occ_picu": 101.0, "occ_nic": 0, "alos_inp": 7.7, "surg_tot": 53, "surg_maj": 8, "surg_maj_p": 15.1, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 1855, "er_am": 618, "er_pm": 1237, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 19917, "opd_am": 15806, "opd_pm": 4111, "opd_am_p": 79.0, "opd_pm_p": 21.0, "occ_inp": 47.0, "occ_icu": 97.0, "occ_picu": 99.0, "occ_nic": 0, "alos_inp": 6.7, "surg_tot": 65, "surg_maj": 11, "surg_maj_p": 16.9, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 1735, "er_am": 578, "er_pm": 1157, "er_am_p": 33.0, "er_pm_p": 67.0, "opd_tot": 19585, "opd_am": 15578, "opd_pm": 4007, "opd_am_p": 80.0, "opd_pm_p": 20.0, "occ_inp": 47.0, "occ_icu": 100.0, "occ_picu": 96.0, "occ_nic": 0, "alos_inp": 7.3, "surg_tot": 61, "surg_maj": 12, "surg_maj_p": 19.7, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 1610, "er_am": 536, "er_pm": 1074, "er_am_p": 33.0, "er_pm_p": 67.0, "occ_inp": 41.0, "occ_icu": 86.0, "occ_picu": 100.0, "occ_nic": 0, "alos_inp": 8.0, "opd_tot": 21748, "opd_am": 17973, "opd_pm": 3775, "opd_am_p": 83.0, "opd_pm_p": 17.0, "surg_tot": 61, "surg_maj": 8, "surg_maj_p": 13.1, "surg_post": 0}]}, {"id": "م . حميات حلوان", "name": "مستشفى حميات حلوان", "cap": {"inpatient_total": 84, "burns_beds": 0, "icu_inter": 8, "icu_gen": 10, "icu_cardiac": 0, "icu_burns": 0, "icu_peds": 0, "icu_total": 18, "incubators": 0, "dialysis": 28}, "or": {"major_or": 0, "minor_or": 0, "total_or": 0}, "devices": {"ct": {"count": 1, "cases": 214}, "cath": {"count": 0, "cases": 0}, "echo": {"count": 1, "cases": 9}, "mri": {"count": 0, "cases": 0}, "mammo": {"count": 0, "cases": 0}}, "kpis": [{"month": "يوليو 2026", "month_short": "يوليو", "er_tot": 989, "er_am": 660, "er_pm": 329, "er_am_p": 67.0, "er_pm_p": 33.0, "opd_tot": 5825, "opd_am": 3123, "opd_pm": 2702, "opd_am_p": 54.0, "opd_pm_p": 46.0, "occ_inp": 29.0, "occ_icu": 83.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 6.88, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "أغسطس 2026", "month_short": "أغسطس", "er_tot": 1264, "er_am": 843, "er_pm": 421, "er_am_p": 67.0, "er_pm_p": 33.0, "opd_tot": 5092, "opd_am": 2664, "opd_pm": 2428, "opd_am_p": 52.0, "opd_pm_p": 48.0, "occ_inp": 31.0, "occ_icu": 83.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 7.02, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "سبتمبر 2026", "month_short": "سبتمبر", "er_tot": 1322, "er_am": 882, "er_pm": 440, "er_am_p": 67.0, "er_pm_p": 33.0, "opd_tot": 5831, "opd_am": 3278, "opd_pm": 2553, "opd_am_p": 56.0, "opd_pm_p": 44.0, "occ_inp": 26.0, "occ_icu": 59.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 7.08, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}, {"month": "أكتوبر 2026", "month_short": "أكتوبر", "er_tot": 1533, "er_am": 1022, "er_pm": 511, "er_am_p": 67.0, "er_pm_p": 33.0, "opd_tot": 6976, "opd_am": 3849, "opd_pm": 3127, "opd_am_p": 55.0, "opd_pm_p": 45.0, "occ_inp": 30.0, "occ_icu": 79.0, "occ_picu": 0, "occ_nic": 0, "alos_inp": 7.14, "surg_tot": 0, "surg_maj": 0, "surg_maj_p": 0.0, "surg_post": 0}]}];
+
+    // Global Chart.js defaults for Arabic RTL typography
+    Chart.defaults.font.family = "'Cairo', sans-serif";
+    Chart.defaults.color = '#334155';
+
+    // Mobile awareness
+    const mqMobile = window.matchMedia('(max-width: 640px)');
+    const isMobile = () => mqMobile.matches;
+    const applyChartDefaults = () => {
+      Chart.defaults.font.size = isMobile() ? 11 : 12;
+      Chart.defaults.plugins.legend.labels.boxWidth = isMobile() ? 8 : 12;
+    };
+    applyChartDefaults();
+    const shortName = (n) => n.replace(/^مستشفى\s+/, '');
+
+    // Application State
+    let state = {
+      activeTab: 'profile',
+      selectedIndex: 0, // Default: مستشفى شبرا العام
+      chart1Mode: 'opd', // 'opd' | 'er' | 'both'
+      chart4Mode: 'cap', // 'cap' | 'dev'
+      sortKey: 'opd_tot',
+      sortDir: 'desc',
+    };
+
+    // Chart instances
+    let charts = {
+      visits: null,
+      occupancy: null,
+      surgeries: null,
+      capDev: null,
+      compare: null,
+    };
+
+    // Formatting Helpers
+    const fmtNum = (n) => (n === null || n === undefined ? '0' : Number(n).toLocaleString('en-US'));
+    const fmtDec = (n, d = 1) => Number(n || 0).toFixed(d);
+
+    // Metric Metadata for Comparison Tab
+    const METRICS_META = {
+      er_tot: { label: 'إجمالي ترددات الطوارئ', type: 'kpi_sum', unit: 'حالة' },
+      opd_tot: { label: 'إجمالي ترددات العيادات الخارجية', type: 'kpi_sum', unit: 'زيارة' },
+      surg_tot: { label: 'إجمالي العمليات الجراحية', type: 'kpi_sum', unit: 'عملية' },
+      occ_icu: { label: 'متوسط إشغال الرعاية المركزة (%)', type: 'kpi_avg', unit: '%' },
+      occ_inp: { label: 'متوسط إشغال القسم الداخلي (%)', type: 'kpi_avg', unit: '%' },
+      inpatient_total: { label: 'إجمالي أسرة الداخلي', type: 'cap', unit: 'سرير' },
+      icu_total: { label: 'إجمالي أسرة العناية', type: 'cap', unit: 'سرير' },
+      dialysis: { label: 'ماكينات الغسيل الكلوي', type: 'cap', unit: 'ماكينة' },
+      incubators: { label: 'الحضانات المفعلة', type: 'cap', unit: 'حضانة' },
+      total_or: { label: 'غرف العمليات المفعلة', type: 'or', unit: 'غرفة' },
+    };
+
+    const PERIOD_LABELS = {
+      all: 'يوليو – أكتوبر 2026',
+      '0': 'يوليو 2026',
+      '1': 'أغسطس 2026',
+      '2': 'سبتمبر 2026',
+      '3': 'أكتوبر 2026',
+    };
+
+    // Initialize Dropdown & Render
+    function readHash() {
+      const m = location.hash.match(/h=(\d+)/);
+      if (m && Number(m[1]) < HOSPITALS_DATA.length) state.selectedIndex = Number(m[1]);
+      return location.hash.includes('compare') ? 'compare' : 'profile';
+    }
+
+    function writeHash() {
+      const h = state.activeTab === 'compare' ? '#compare' : `#h=${state.selectedIndex}`;
+      if (location.hash !== h) history.replaceState(null, '', h);
+    }
+
+    function init() {
+      const select = document.getElementById('hospitalSelect');
+      select.innerHTML = HOSPITALS_DATA.map((h, i) => `<option value="${i}">${h.name}</option>`).join('');
+      const tab = readHash();
+      select.value = state.selectedIndex;
+      if (tab === 'compare') switchTab('compare'); else renderHospitalProfile();
+
+      // Re-draw with phone/desktop sizing when crossing the breakpoint (e.g. rotating the phone)
+      mqMobile.addEventListener('change', () => {
+        applyChartDefaults();
+        if (state.activeTab === 'compare') renderComparison(); else renderHospitalProfile();
+      });
+    }
+
+    // Tab Switching
+    function switchTab(tab) {
+      state.activeTab = tab;
+      const profileView = document.getElementById('viewProfile');
+      const compareView = document.getElementById('viewCompare');
+      const controlBar = document.getElementById('hospitalControlBar');
+      const btnProfile = document.getElementById('tabBtnProfile');
+      const btnCompare = document.getElementById('tabBtnCompare');
+
+      if (tab === 'profile') {
+        profileView.classList.remove('hidden');
+        compareView.classList.add('hidden');
+        controlBar.classList.remove('hidden');
+        btnProfile.className = 'flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 bg-white text-[#0f3d5e] shadow-sm';
+        btnCompare.className = 'flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-white/90 hover:text-white';
+        renderHospitalProfile();
+      } else {
+        profileView.classList.add('hidden');
+        compareView.classList.remove('hidden');
+        controlBar.classList.add('hidden');
+        btnCompare.className = 'flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 bg-white text-[#0f3d5e] shadow-sm';
+        btnProfile.className = 'flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-white/90 hover:text-white';
+        renderComparison();
+        writeHash();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Hospital Navigation
+    function selectHospitalByIndex(idx) {
+      state.selectedIndex = Number(idx);
+      document.getElementById('hospitalSelect').value = state.selectedIndex;
+      renderHospitalProfile();
+    }
+
+    function navigateHospital(delta) {
+      const total = HOSPITALS_DATA.length;
+      state.selectedIndex = (state.selectedIndex + delta + total) % total;
+      document.getElementById('hospitalSelect').value = state.selectedIndex;
+      renderHospitalProfile();
+    }
+
+    function openHospitalFromCompare(idx) {
+      state.selectedIndex = idx;
+      document.getElementById('hospitalSelect').value = idx;
+      switchTab('profile');
+    }
+
+    // =========================================================
+    // TAB 1 RENDERING
+    // =========================================================
+    function renderHospitalProfile() {
+      const h = HOSPITALS_DATA[state.selectedIndex];
+      document.getElementById('selectedHospitalName').textContent = h.name;
+      document.getElementById('hospitalCounter').textContent = `${state.selectedIndex + 1} / ${HOSPITALS_DATA.length}`;
+      writeHash();
+
+      renderCapabilityCards(h);
+      renderDevicesGrid(h);
+      renderVisitsChart(h);
+      renderOccupancyChart(h);
+      renderSurgeriesChart(h);
+      renderCapDevChart(h);
+      renderTables(h);
+    }
+
+    function renderCapabilityCards(h) {
+      const c = h.cap;
+      const o = h.or;
+
+      // ICU Breakdown Badges
+      const icuBadges = [
+        { label: 'مركزة', val: c.icu_gen },
+        { label: 'متوسطة', val: c.icu_inter },
+        { label: 'قلب', val: c.icu_cardiac },
+        { label: 'حروق', val: c.icu_burns },
+        { label: 'أطفال', val: c.icu_peds },
+      ]
+        .filter((b) => b.val > 0)
+        .map((b) => `<span class="px-2 py-0.5 rounded-md bg-teal-50 text-[#0f766e] border border-teal-200/70 text-[11px] font-bold">${b.label}: ${fmtNum(b.val)}</span>`)
+        .join('');
+
+      const burnsSubtitle = c.burns_beds > 0
+        ? `<div class="mt-2"><span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold">منها أسرة حروق: ${fmtNum(c.burns_beds)}</span></div>`
+        : `<p class="text-[11px] text-slate-400 font-semibold mt-2">الأقسام الداخلية العامة</p>`;
+
+      const cardsHtml = `
+        <!-- Inpatient Beds -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between print-card">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">إجمالي أسرة الداخلي</span>
+            <span class="w-8 h-8 rounded-xl bg-sky-50 text-[#0f3d5e] flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1zm2 12v2m12-2v2"/></svg>
+            </span>
+          </div>
+          <div class="mt-2">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#0f3d5e] tabular-nums">${fmtNum(c.inpatient_total)}</div>
+            ${burnsSubtitle}
+          </div>
+        </div>
+
+        <!-- ICU Beds -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between print-card">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">إجمالي أسرة العناية</span>
+            <span class="w-8 h-8 rounded-xl bg-teal-50 text-[#0d9488] flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </span>
+          </div>
+          <div class="mt-2">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#0d9488] tabular-nums">${fmtNum(c.icu_total)}</div>
+            <div class="flex flex-wrap gap-1 mt-2">
+              ${icuBadges || '<span class="text-[11px] text-slate-400 font-semibold">لا توجد أسرة عناية</span>'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Incubators -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between print-card">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">الحضانات المفعلة</span>
+            <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
+            </span>
+          </div>
+          <div class="mt-2">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#0f3d5e] tabular-nums">${fmtNum(c.incubators)}</div>
+            <p class="text-[11px] text-slate-400 font-semibold mt-2">وحدة المبتسرين وحديثي الولادة</p>
+          </div>
+        </div>
+
+        <!-- Dialysis Machines -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between print-card">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">ماكينات الغسيل الكلوي</span>
+            <span class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </span>
+          </div>
+          <div class="mt-2">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#0f3d5e] tabular-nums">${fmtNum(c.dialysis)}</div>
+            <p class="text-[11px] text-slate-400 font-semibold mt-2">وحدة الكلى الصناعي</p>
+          </div>
+        </div>
+
+        <!-- Operating Rooms -->
+        <div class="col-span-2 lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between print-card">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">غرف العمليات المفعلة</span>
+            <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            </span>
+          </div>
+          <div class="mt-2">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#0f3d5e] tabular-nums">${fmtNum(o.total_or)}</div>
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">كبرى: ${fmtNum(o.major_or)}</span>
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">صغرى: ${fmtNum(o.minor_or)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('capabilityCards').innerHTML = cardsHtml;
+    }
+
+    function renderDevicesGrid(h) {
+      const devList = [
+        { key: 'ct', name: 'أشعة مقطعية (CT)' },
+        { key: 'cath', name: 'قسطرة القلب' },
+        { key: 'echo', name: 'جهاز أيكو (Echo)' },
+        { key: 'mri', name: 'رنين مغناطيسي (MRI)' },
+        { key: 'mammo', name: 'جهاز ماموجرام' },
+      ];
+
+      const html = devList
+        .map((d) => {
+          const item = h.devices[d.key];
+          const active = item.count > 0;
+          return `
+            <div class="${d.key === 'mammo' ? 'col-span-2 sm:col-span-1 ' : ''}rounded-xl border ${active ? 'border-teal-200 bg-teal-50/40' : 'border-slate-200 bg-slate-50/70'} p-3 flex flex-col justify-between">
+              <div class="text-xs font-extrabold ${active ? 'text-[#0f3d5e]' : 'text-slate-500'} mb-2">${d.name}</div>
+              <div class="flex items-end justify-between gap-2 tabular-nums">
+                <div>
+                  <div class="text-[11px] text-slate-500 font-semibold">عدد الأجهزة</div>
+                  <div class="text-xl font-extrabold ${active ? 'text-[#0d9488]' : 'text-slate-400'}">${fmtNum(item.count)}</div>
+                </div>
+                <div class="text-left">
+                  <div class="text-[11px] text-slate-500 font-semibold">عدد الحالات</div>
+                  <div class="text-base font-extrabold ${active ? 'text-[#0f3d5e]' : 'text-slate-400'}">${fmtNum(item.cases)}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+
+      document.getElementById('devicesGrid').innerHTML = html;
+    }
+
+    // Chart 1 Mode Switcher
+    function setChart1Mode(mode) {
+      state.chart1Mode = mode;
+      document.querySelectorAll('.c1-btn').forEach((btn) => {
+        if (btn.dataset.c1 === mode) {
+          btn.className = 'c1-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-[#0f3d5e] text-white shadow-sm';
+        } else {
+          btn.className = 'c1-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-[#0f3d5e]';
+        }
+      });
+      renderVisitsChart(HOSPITALS_DATA[state.selectedIndex]);
+    }
+
+    // Chart 1: ER & OPD Visits
+    function renderVisitsChart(h) {
+      const ctx = document.getElementById('chartVisits').getContext('2d');
+      if (charts.visits) charts.visits.destroy();
+
+      const labels = h.kpis.map((k) => k.month_short);
+      let datasets = [];
+      let stacked = true;
+
+      if (state.chart1Mode === 'opd') {
+        datasets = [
+          {
+            label: 'عيادات صباحي',
+            data: h.kpis.map((k) => k.opd_am),
+            backgroundColor: '#0f3d5e',
+            borderRadius: 6,
+            pcts: h.kpis.map((k) => k.opd_am_p),
+          },
+          {
+            label: 'عيادات مسائي',
+            data: h.kpis.map((k) => k.opd_pm),
+            backgroundColor: '#14b8a6',
+            borderRadius: 6,
+            pcts: h.kpis.map((k) => k.opd_pm_p),
+          },
+        ];
+      } else if (state.chart1Mode === 'er') {
+        datasets = [
+          {
+            label: 'طوارئ صباحي',
+            data: h.kpis.map((k) => k.er_am),
+            backgroundColor: '#0284c7',
+            borderRadius: 6,
+            pcts: h.kpis.map((k) => k.er_am_p),
+          },
+          {
+            label: 'طوارئ مسائي',
+            data: h.kpis.map((k) => k.er_pm),
+            backgroundColor: '#f59e0b',
+            borderRadius: 6,
+            pcts: h.kpis.map((k) => k.er_pm_p),
+          },
+        ];
+      } else {
+        stacked = false;
+        datasets = [
+          {
+            label: 'إجمالي العيادات الخارجية',
+            data: h.kpis.map((k) => k.opd_tot),
+            backgroundColor: '#0f3d5e',
+            borderRadius: 6,
+          },
+          {
+            label: 'إجمالي الطوارئ',
+            data: h.kpis.map((k) => k.er_tot),
+            backgroundColor: '#0d9488',
+            borderRadius: 6,
+          },
+        ];
+      }
+
+      charts.visits = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              rtl: true,
+              labels: { usePointStyle: true, padding: 14, font: { weight: '700', size: 12 } },
+            },
+            tooltip: {
+              rtl: true,
+              textDirection: 'rtl',
+              backgroundColor: '#0f172a',
+              padding: 10,
+              callbacks: {
+                label: (context) => {
+                  const val = fmtNum(context.parsed.y);
+                  const pctArr = context.dataset.pcts;
+                  if (pctArr) {
+                    return `${context.dataset.label}: ${val} (${pctArr[context.dataIndex]}%)`;
+                  }
+                  return `${context.dataset.label}: ${val}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: { stacked, grid: { display: false }, ticks: { font: { weight: '700' } } },
+            y: {
+              stacked,
+              beginAtZero: true,
+              grid: { color: '#e2e8f0' },
+              ticks: { callback: (v) => fmtNum(v) },
+            },
+          },
+        },
+      });
+    }
+
+    // Chart 2: Monthly Occupancy Rates
+    function renderOccupancyChart(h) {
+      const ctx = document.getElementById('chartOccupancy').getContext('2d');
+      if (charts.occupancy) charts.occupancy.destroy();
+
+      const labels = h.kpis.map((k) => k.month_short);
+
+      charts.occupancy = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'إشغال الداخلي',
+              data: h.kpis.map((k) => k.occ_inp),
+              borderColor: '#0f3d5e',
+              backgroundColor: 'rgba(15, 61, 94, 0.1)',
+              tension: 0.35,
+              borderWidth: 2.8,
+              pointRadius: 4.5,
+              pointHoverRadius: 6,
+            },
+            {
+              label: 'إشغال الرعاية المركزة',
+              data: h.kpis.map((k) => k.occ_icu),
+              borderColor: '#0d9488',
+              backgroundColor: 'rgba(13, 148, 136, 0.1)',
+              tension: 0.35,
+              borderWidth: 2.8,
+              pointRadius: 4.5,
+              pointHoverRadius: 6,
+            },
+            {
+              label: 'إشغال رعاية الأطفال',
+              data: h.kpis.map((k) => k.occ_picu),
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              tension: 0.35,
+              borderWidth: 2.5,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+            },
+            {
+              label: 'إشغال الحضانات',
+              data: h.kpis.map((k) => k.occ_nic),
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              tension: 0.35,
+              borderWidth: 2.5,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              rtl: true,
+              labels: { usePointStyle: true, padding: 12, font: { weight: '700', size: 11.5 } },
+            },
+            tooltip: {
+              rtl: true,
+              textDirection: 'rtl',
+              backgroundColor: '#0f172a',
+              padding: 10,
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}%`,
+              },
+            },
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { weight: '700' } } },
+            y: {
+              beginAtZero: true,
+              suggestedMax: 110,
+              grid: { color: '#e2e8f0' },
+              ticks: { callback: (v) => `${v}%` },
+            },
+          },
+        },
+      });
+    }
+
+    // Chart 3: Surgeries & Major Percentage Combo Chart
+    function renderSurgeriesChart(h) {
+      const ctx = document.getElementById('chartSurgeries').getContext('2d');
+      if (charts.surgeries) charts.surgeries.destroy();
+
+      const labels = h.kpis.map((k) => k.month_short);
+
+      charts.surgeries = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'إجمالي العمليات',
+              data: h.kpis.map((k) => k.surg_tot),
+              backgroundColor: '#0f3d5e',
+              borderRadius: 6,
+              yAxisID: 'y',
+              order: 2,
+            },
+            {
+              type: 'bar',
+              label: 'عمليات كبرى وذات مهارة',
+              data: h.kpis.map((k) => k.surg_maj),
+              backgroundColor: '#0d9488',
+              borderRadius: 6,
+              yAxisID: 'y',
+              order: 3,
+            },
+            {
+              type: 'line',
+              label: 'نسبة الكبرى والمهارة (%)',
+              data: h.kpis.map((k) => k.surg_maj_p),
+              borderColor: '#f59e0b',
+              backgroundColor: '#f59e0b',
+              borderWidth: 3,
+              tension: 0.3,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              yAxisID: 'y1',
+              order: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              rtl: true,
+              labels: { usePointStyle: true, padding: 12, font: { weight: '700', size: 11.5 } },
+            },
+            tooltip: {
+              rtl: true,
+              textDirection: 'rtl',
+              backgroundColor: '#0f172a',
+              padding: 10,
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.dataset.yAxisID === 'y1') {
+                    return `${ctx.dataset.label}: ${ctx.parsed.y}%`;
+                  }
+                  return `${ctx.dataset.label}: ${fmtNum(ctx.parsed.y)}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { weight: '700' } } },
+            y: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              grid: { color: '#e2e8f0' },
+              title: { display: true, text: 'عدد العمليات', font: { weight: '700', size: 11 } },
+            },
+            y1: {
+              type: 'linear',
+              position: 'left',
+              beginAtZero: true,
+              max: 100,
+              grid: { drawOnChartArea: false },
+              ticks: { callback: (v) => `${v}%` },
+              title: { display: true, text: 'النسبة %', font: { weight: '700', size: 11 } },
+            },
+          },
+        },
+      });
+    }
+
+    // Chart 4 Mode Switcher
+    function setChart4Mode(mode) {
+      state.chart4Mode = mode;
+      document.querySelectorAll('.c4-btn').forEach((btn) => {
+        if (btn.dataset.c4 === mode) {
+          btn.className = 'c4-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-[#0d9488] text-white shadow-sm';
+        } else {
+          btn.className = 'c4-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-[#0f3d5e]';
+        }
+      });
+      renderCapDevChart(HOSPITALS_DATA[state.selectedIndex]);
+    }
+
+    // Chart 4: Capabilities Doughnut OR Diagnostic Cases Horizontal Bar
+    function renderCapDevChart(h) {
+      const ctx = document.getElementById('chartCapDev').getContext('2d');
+      if (charts.capDev) charts.capDev.destroy();
+
+      if (state.chart4Mode === 'cap') {
+        const capValues = [
+          h.cap.inpatient_total,
+          h.cap.icu_total,
+          h.cap.incubators,
+          h.cap.dialysis,
+          h.or.total_or,
+        ];
+        const totalCap = capValues.reduce((a, b) => a + b, 0);
+
+        charts.capDev = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['أسرة الداخلي', 'أسرة العناية', 'الحضانات', 'ماكينات الكلى', 'غرف العمليات'],
+            datasets: [
+              {
+                data: totalCap > 0 ? capValues : [1],
+                backgroundColor: totalCap > 0
+                  ? ['#0f3d5e', '#0d9488', '#6366f1', '#0ea5e9', '#f59e0b']
+                  : ['#e2e8f0'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '58%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                rtl: true,
+                labels: { usePointStyle: true, padding: 12, font: { weight: '700', size: 11.5 } },
+              },
+              tooltip: {
+                rtl: true,
+                textDirection: 'rtl',
+                backgroundColor: '#0f172a',
+                padding: 10,
+                callbacks: {
+                  label: (ctx) => {
+                    if (totalCap === 0) return 'لا توجد تجهيزات مسجلة';
+                    const val = ctx.parsed;
+                    const pct = ((val / totalCap) * 100).toFixed(1);
+                    return `${ctx.label}: ${fmtNum(val)} (${pct}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      } else {
+        const labels = ['أشعة مقطعية', 'رنين مغناطيسي', 'جهاز أيكو', 'قسطرة القلب', 'جهاز ماموجرام'];
+        const data = [
+          h.devices.ct.cases,
+          h.devices.mri.cases,
+          h.devices.echo.cases,
+          h.devices.cath.cases,
+          h.devices.mammo.cases,
+        ];
+
+        charts.capDev = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'عدد الحالات',
+                data,
+                backgroundColor: ['#0f3d5e', '#0d9488', '#0284c7', '#f59e0b', '#6366f1'],
+                borderRadius: 6,
+                barThickness: isMobile() ? 20 : 26,
+              },
+            ],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                rtl: true,
+                textDirection: 'rtl',
+                backgroundColor: '#0f172a',
+                padding: 10,
+                callbacks: {
+                  label: (ctx) => `عدد الحالات: ${fmtNum(ctx.parsed.x)}`,
+                },
+              },
+            },
+            scales: {
+              x: {
+                reverse: true,
+                beginAtZero: true,
+                grid: { color: '#e2e8f0' },
+                ticks: { maxTicksLimit: isMobile() ? 4 : 8, callback: (v) => fmtNum(v) },
+              },
+              y: {
+                position: 'right',
+                grid: { display: false },
+                ticks: { font: { weight: '700', size: isMobile() ? 11 : 12 } },
+              },
+            },
+          },
+        });
+      }
+    }
+
+    // Section 3: Detailed Tables
+    function renderTables(h) {
+      // Table 1: ER & OPD
+      document.getElementById('tableVisitsBody').innerHTML = h.kpis
+        .map(
+          (k, i) => `
+          <tr class="${i % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'} hover:bg-teal-50/40 transition-colors">
+            <td class="sticky-col py-3 px-3 font-extrabold text-[#0f3d5e] whitespace-nowrap">${k.month}</td>
+            <td class="py-3 px-3 font-extrabold text-[#0f3d5e]">${fmtNum(k.er_tot)}</td>
+            <td class="py-3 px-3">${fmtNum(k.er_am)} <span class="text-xs text-slate-500 font-semibold">(${k.er_am_p}%)</span></td>
+            <td class="py-3 px-3">${fmtNum(k.er_pm)} <span class="text-xs text-slate-500 font-semibold">(${k.er_pm_p}%)</span></td>
+            <td class="py-3 px-3 font-extrabold text-[#0d9488]">${fmtNum(k.opd_tot)}</td>
+            <td class="py-3 px-3">${fmtNum(k.opd_am)} <span class="text-xs text-slate-500 font-semibold">(${k.opd_am_p}%)</span></td>
+            <td class="py-3 px-3">${fmtNum(k.opd_pm)} <span class="text-xs text-slate-500 font-semibold">(${k.opd_pm_p}%)</span></td>
+          </tr>
+        `
+        )
+        .join('');
+
+      // Table 2: Occupancy & ALOS
+      document.getElementById('tableOccupancyBody').innerHTML = h.kpis
+        .map(
+          (k, i) => `
+          <tr class="${i % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'} hover:bg-teal-50/40 transition-colors">
+            <td class="sticky-col py-3 px-3 font-extrabold text-[#0f3d5e] whitespace-nowrap">${k.month}</td>
+            <td class="py-3 px-3 font-bold">${k.occ_inp}%</td>
+            <td class="py-3 px-3 font-extrabold text-[#0d9488]">${k.occ_icu}%</td>
+            <td class="py-3 px-3 font-bold">${k.occ_picu}%</td>
+            <td class="py-3 px-3 font-bold">${k.occ_nic}%</td>
+            <td class="py-3 px-3 font-bold text-slate-700">${k.alos_inp} يوم</td>
+          </tr>
+        `
+        )
+        .join('');
+
+      // Table 3: Surgeries
+      document.getElementById('tableSurgeriesBody').innerHTML = h.kpis
+        .map(
+          (k, i) => `
+          <tr class="${i % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'} hover:bg-teal-50/40 transition-colors">
+            <td class="sticky-col py-3 px-3 font-extrabold text-[#0f3d5e] whitespace-nowrap">${k.month}</td>
+            <td class="py-3 px-3 font-extrabold text-[#0f3d5e]">${fmtNum(k.surg_tot)}</td>
+            <td class="py-3 px-3 font-bold">${fmtNum(k.surg_maj)}</td>
+            <td class="py-3 px-3 font-extrabold text-[#0d9488]">${k.surg_tot > 0 ? k.surg_maj_p + '%' : '0%'}</td>
+            <td class="py-3 px-3 font-bold ${k.surg_post > 0 ? 'text-amber-700' : 'text-slate-600'}">${fmtNum(k.surg_post)}</td>
+          </tr>
+        `
+        )
+        .join('');
+    }
+
+    // =========================================================
+    // TAB 2: CROSS-HOSPITAL COMPARISON
+    // =========================================================
+    function getMetricValue(hospital, metricKey, period) {
+      const meta = METRICS_META[metricKey];
+      if (meta.type === 'cap') return hospital.cap[metricKey];
+      if (meta.type === 'or') return hospital.or[metricKey];
+
+      if (period === 'all') {
+        const vals = hospital.kpis.map((k) => Number(k[metricKey] || 0));
+        if (meta.type === 'kpi_sum') {
+          return vals.reduce((a, b) => a + b, 0);
+        }
+        // Average over 4 months
+        const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+        return Number(avg.toFixed(1));
+      } else {
+        const mIdx = Number(period);
+        return Number(hospital.kpis[mIdx][metricKey] || 0);
+      }
+    }
+
+    function renderComparison() {
+      const metricKey = document.getElementById('compareMetricSelect').value;
+      const periodSelect = document.getElementById('comparePeriodSelect');
+      const meta = METRICS_META[metricKey];
+
+      // Disable period selector for static capacity metrics
+      const isCapacity = meta.type === 'cap' || meta.type === 'or';
+      periodSelect.disabled = isCapacity;
+      const period = isCapacity ? 'all' : periodSelect.value;
+
+      // Prepare sorted data
+      const rows = HOSPITALS_DATA.map((h, idx) => ({
+        idx,
+        name: h.name,
+        val: getMetricValue(h, metricKey, period),
+      })).sort((a, b) => b.val - a.val);
+
+      // Summary stat
+      let summaryText = '';
+      if (meta.type === 'kpi_avg') {
+        const nonZero = rows.filter((r) => r.val > 0);
+        const avgAll = nonZero.length
+          ? (nonZero.reduce((s, r) => s + r.val, 0) / nonZero.length).toFixed(1)
+          : '0.0';
+        summaryText = `${avgAll}%`;
+      } else {
+        const sumAll = rows.reduce((s, r) => s + r.val, 0);
+        summaryText = `${fmtNum(sumAll)} ${meta.unit}`;
+      }
+      document.getElementById('compareSummaryStat').textContent = summaryText;
+      document.getElementById('compareChartTitle').textContent = `مقارنة جميع المستشفيات — ${meta.label}`;
+      document.getElementById('comparePeriodBadge').textContent = isCapacity ? 'إمكانيات ثابتة' : PERIOD_LABELS[period];
+
+      // Render Horizontal Bar Chart (height scales with the number of hospitals)
+      document.getElementById('compareChartBox').style.height = `${rows.length * (isMobile() ? 28 : 32) + 40}px`;
+      const ctx = document.getElementById('chartCompare').getContext('2d');
+      if (charts.compare) charts.compare.destroy();
+
+      charts.compare = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: rows.map((r) => (isMobile() ? shortName(r.name) : r.name)),
+          datasets: [
+            {
+              label: meta.label,
+              data: rows.map((r) => r.val),
+              backgroundColor: rows.map((r, i) => (i < 3 ? '#0d9488' : '#0f3d5e')),
+              hoverBackgroundColor: '#14b8a6',
+              borderRadius: 6,
+              barThickness: isMobile() ? 16 : 20,
+            },
+          ],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          onHover: (event, elements) => {
+            event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const clickedRow = rows[elements[0].index];
+              openHospitalFromCompare(clickedRow.idx);
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              rtl: true,
+              textDirection: 'rtl',
+              backgroundColor: '#0f172a',
+              padding: 10,
+              callbacks: {
+                label: (ctx) => {
+                  const v = ctx.parsed.x;
+                  return meta.unit === '%' ? `${meta.label}: ${v}%` : `${meta.label}: ${fmtNum(v)} ${meta.unit}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              reverse: true,
+              beginAtZero: true,
+              grid: { color: '#e2e8f0' },
+              ticks: {
+                maxTicksLimit: isMobile() ? 4 : 8,
+                callback: (v) => (meta.unit === '%' ? `${v}%` : fmtNum(v)),
+              },
+            },
+            y: {
+              position: 'right',
+              grid: { display: false },
+              ticks: { font: { weight: '700', size: isMobile() ? 10.5 : 12 }, color: '#0f172a' },
+            },
+          },
+        },
+      });
+
+      renderCompareTable();
+    }
+
+    function sortCompareTable(key) {
+      if (state.sortKey === key) {
+        state.sortDir = state.sortDir === 'desc' ? 'asc' : 'desc';
+      } else {
+        state.sortKey = key;
+        state.sortDir = key === 'name' ? 'asc' : 'desc';
+      }
+      renderCompareTable();
+    }
+
+    function renderCompareTable() {
+      const search = (document.getElementById('compareSearchInput').value || '').trim().toLowerCase();
+      const periodSelect = document.getElementById('comparePeriodSelect');
+      const period = periodSelect.disabled ? 'all' : periodSelect.value;
+
+      // Update sort arrows
+      ['name', 'inpatient_total', 'icu_total', 'dialysis', 'er_tot', 'opd_tot', 'surg_tot', 'occ_icu'].forEach((k) => {
+        const el = document.getElementById(`sort_${k}`);
+        if (el) {
+          el.textContent = state.sortKey === k ? (state.sortDir === 'asc' ? '▲' : '▼') : '';
+        }
+      });
+
+      let list = HOSPITALS_DATA.map((h, idx) => ({
+        idx,
+        name: h.name,
+        inpatient_total: h.cap.inpatient_total,
+        icu_total: h.cap.icu_total,
+        dialysis: h.cap.dialysis,
+        er_tot: getMetricValue(h, 'er_tot', period),
+        opd_tot: getMetricValue(h, 'opd_tot', period),
+        surg_tot: getMetricValue(h, 'surg_tot', period),
+        occ_icu: getMetricValue(h, 'occ_icu', period),
+      }));
+
+      if (search) {
+        list = list.filter((item) => item.name.toLowerCase().includes(search));
+      }
+
+      list.sort((a, b) => {
+        const va = a[state.sortKey];
+        const vb = b[state.sortKey];
+        if (typeof va === 'string') {
+          return state.sortDir === 'asc' ? va.localeCompare(vb, 'ar') : vb.localeCompare(va, 'ar');
+        }
+        return state.sortDir === 'asc' ? va - vb : vb - va;
+      });
+
+      const tbody = document.getElementById('compareTableBody');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-slate-400 font-bold">لا توجد مستشفيات مطابقة للبحث</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list
+        .map(
+          (r, i) => `
+          <tr class="${i % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'} hover:bg-teal-50/50 transition-colors">
+            <td class="sticky-col py-3 px-3 text-right font-extrabold text-[#0f3d5e] whitespace-nowrap">${r.name}</td>
+            <td class="py-3 px-2.5 font-bold">${fmtNum(r.inpatient_total)}</td>
+            <td class="py-3 px-2.5 font-bold text-[#0d9488]">${fmtNum(r.icu_total)}</td>
+            <td class="py-3 px-2.5 font-bold">${fmtNum(r.dialysis)}</td>
+            <td class="py-3 px-2.5 font-bold">${fmtNum(r.er_tot)}</td>
+            <td class="py-3 px-2.5 font-extrabold text-[#0f3d5e]">${fmtNum(r.opd_tot)}</td>
+            <td class="py-3 px-2.5 font-bold">${fmtNum(r.surg_tot)}</td>
+            <td class="py-3 px-2.5 font-extrabold text-[#0d9488]">${r.occ_icu}%</td>
+            <td class="py-3 px-3">
+              <button type="button" onclick="openHospitalFromCompare(${r.idx})"
+                class="px-3 py-1.5 rounded-lg bg-[#0f3d5e] hover:bg-[#0d9488] text-white text-xs font-bold transition-colors whitespace-nowrap">
+                عرض الملف
+              </button>
+            </td>
+          </tr>
+        `
+        )
+        .join('');
+    }
+
+    // Boot application
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
